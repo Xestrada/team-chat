@@ -20,7 +20,7 @@ public class Server {
 
         // Setup Server Non-Blocking
         ServerSocketChannel server = ServerSocketChannel.open();
-        server.socket().bind(new InetSocketAddress(1234));
+        server.socket().bind(new InetSocketAddress(1244));
         server.configureBlocking(false);
 
         // Create Selector based on Server
@@ -51,19 +51,24 @@ public class Server {
                 } else if (key.isReadable()) {
 
                     SocketChannel client = (SocketChannel) key.channel();
-                    ByteBuffer buf = ByteBuffer.allocate(256); // Should be the size of the message Object we willbe
-                                                               // sending
+                    ByteBuffer buf = ByteBuffer.allocate(140); // Should be the size of the message Object we willbe
+                    // Read in userName and message
                     client.read(buf);
-                    byte[] bufArray = new byte[buf.remaining()];
-                    buf.get(bufArray); // Convert ByteBuffer to byte[]
+                    String line = new String(buf.array()).trim();
 
-                    // Read the client Message and perform operations
-                    ByteArrayInputStream bis = new ByteArrayInputStream(bufArray);
-                    ObjectInputStream in = new ObjectInputStream(bis);
-                    // Message msg = (Message)in.readObject();
+                    //Server side display of connected members
+                    String[] split = line.split("\n");
+                    String user = split[0];
+                    System.out.println(user+" has joined the server...");
+                    String newUser = split[0]+" has joined the server...";
 
-                    // Write message to Clients ...
-                }
+                    //send new user update to everyone
+                    byte[] message = newUser.getBytes();
+                    ByteBuffer buffer = ByteBuffer.wrap(message);
+                    client.write(buffer);
+                    buffer.clear();
+                    client.close();
+
 
             }
             it.remove();
@@ -71,4 +76,4 @@ public class Server {
         }
     }
 
-}
+}}

@@ -12,27 +12,30 @@ public class Client {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        InetSocketAddress addr = new InetSocketAddress("localhost", 1234);
+        //Username and message sent as one string seperated by newLine
+        String userName = "username";
+        String write  = "";
+        String full = userName+"\n"+write;
+
+        //open connection
+        InetSocketAddress addr = new InetSocketAddress("localhost", 1244);
         SocketChannel client = SocketChannel.open(addr);
 
-        ArrayList<String> messages = new ArrayList<String>();
+        //send username to server
+        while(client.isOpen()) {
+                byte[] message = full.getBytes();
+                ByteBuffer buffer = ByteBuffer.wrap(message);
+                client.write(buffer);
+                buffer.clear();
 
-        // create a ArrayList with companyName list
-        messages.add("Hello!");
-        messages.add("This is a test.");
-        messages.add("Good bye!");
-
-        for (String m : messages) {
-
-            byte[] message = new String(m).getBytes();
-            ByteBuffer buffer = ByteBuffer.wrap(message);
-            client.write(buffer);
-
-            buffer.clear();
-
+            // Read in new user from server
+            ByteBuffer buf = ByteBuffer.allocate(140); // Should be the size of the message Object we willbe
+            client.read(buf);
+            String line = new String(buf.array()).trim();
+            System.out.print(line);
             // wait for 2 seconds before sending next message
             Thread.sleep(2000);
+            client.close();
         }
-        client.close();
     }
 }

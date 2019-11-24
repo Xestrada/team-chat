@@ -1,79 +1,80 @@
-import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Iterator;
-import java.util.Set;
+import java.net.Socket;
+import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 
-public class Server {
+public class Server implements Runnable {
 
-    public Server() {
+    private boolean hasMessage;
+    private final Socket client;
+    private Message message;
+    private ObjectInputStream in;
+    private static PriorityQueue<Message> messages;
+    
+    // Read Initial Message
+    public Server(Socket s) {
+        client = s;
+        try {
+            in = new ObjectInputStream(client.getInputStream());
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    
+    public void setMessage(Message m) {
+        message = m;
+        hasMessage = true;
+    }
+    
+    @Override
+    public void run() {
+        
+        while(true) {
+            
+            try {
+                
+                /* 
+                * Not sure if this is a good way to check if there is
+                * something in the ObjectInputStream
+                */
+                if(in.available() != 0) {
+                    // Read Message into Queue
+                }
+                
 
+                if(hasMessage) {
+                    // Send message to client
+                    hasMessage = false;
+                }
+                
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+            
+        }
+        
     }
 
     public static void main(String args[]) throws Exception {
-
-        // Setup Server Non-Blocking
-        ServerSocketChannel server = ServerSocketChannel.open();
-        server.socket().bind(new InetSocketAddress(1244));
-        server.configureBlocking(false);
-
-        // Create Selector based on Server
-        Selector selector = Selector.open();
-        server.register(selector, server.validOps());
-
-        // Store SocketChannels
-        ArrayList<SocketChannel> clients = new ArrayList<>();
-
-        while (true) {
-
-            // Select keys that are ready
-            selector.select();
-            Set<SelectionKey> keys = selector.selectedKeys();
-            Iterator<SelectionKey> it = keys.iterator();
-
-            // Iterate Through keys
-            while (it.hasNext()) {
-                SelectionKey key = it.next();
-
-                // Accept a new Client and set key to read
-                if (key.isAcceptable()) {
-                    SocketChannel sock = server.accept();
-                    sock.configureBlocking(false);
-                    sock.register(selector, SelectionKey.OP_READ);
-                    clients.add(sock);
-
-                } else if (key.isReadable()) {
-
-                    SocketChannel client = (SocketChannel) key.channel();
-                    ByteBuffer buf = ByteBuffer.allocate(140); // Should be the size of the message Object we willbe
-                    // Read in userName and message
-                    client.read(buf);
-                    String line = new String(buf.array()).trim();
-
-                    //Server side display of connected members
-                    String[] split = line.split("\n");
-                    String user = split[0];
-                    System.out.println(user+" has joined the server...");
-                    String newUser = split[0]+" has joined the server...";
-
-                    //send new user update to everyone
-                    byte[] message = newUser.getBytes();
-                    ByteBuffer buffer = ByteBuffer.wrap(message);
-                    client.write(buffer);
-                    buffer.clear();
-                    client.close();
-
-
-            }
-            it.remove();
+        
+        Socket sock;
+        Thread thread;
+        ArrayList<Thread> threads = new ArrayList();
+        ServerSocket mainServer = new ServerSocket(1244);
+        
+        // Connection Thread
+        while(true) {
+            
+            sock = mainServer.accept();
+            thread = new Thread(new Server(sock));
+            threads.add(thread);
+            thread.start();
 
         }
+
+
     }
 
-}}
+}

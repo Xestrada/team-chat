@@ -1,4 +1,6 @@
-public class Message implements Comparable<Message> {
+import java.io.Serializable;
+
+public class Message implements Comparable<Message>, Serializable {
     
     private boolean logIn, logOut;
     private String message;

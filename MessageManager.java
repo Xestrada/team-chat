@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 public class MessageManager implements Runnable {
     
-    private PriorityQueue q;
+    private volatile PriorityQueue q;
     private final ArrayList<Server> servers;
     private Message m;
     
@@ -16,9 +16,8 @@ public class MessageManager implements Runnable {
     public void run() {
         
         while(true) {
-        
+
             if(!q.isEmpty()) {
-                
                 // Pop message and add to Queue in all servers
                 m = (Message)q.poll();
                 servers.forEach(server -> {

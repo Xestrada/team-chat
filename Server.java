@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -10,14 +11,16 @@ public class Server implements Runnable {
 
     private final Socket client;
     private ObjectInputStream in;
+    private ObjectOutputStream out;
     private Stack<Message> messages;
-    private static PriorityQueue<Message> clientMessages;
-    
+    private static PriorityQueue<Message> clientMessages; 
     
     public Server(Socket s) {
         client = s;
+        messages = new Stack();
         try {
             in = new ObjectInputStream(client.getInputStream());
+            out = new ObjectOutputStream(client.getOutputStream());
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -29,26 +32,27 @@ public class Server implements Runnable {
     
     @Override
     public void run() {
+     
+        // Manage this Sockets Inputs
+        Thread t = new Thread(new InputManager(Server.clientMessages, in));
+        t.start();
         
+        // Send Messages out to Client
         while(true) {
             
             try {
-                
-                /* 
-                * Not sure if this is a good way to check if there is
-                * something in the ObjectInputStream
-                */
-                if(in.available() != 0) {
-                    // Add Message to Queue
-                    Server.clientMessages.add((Message)in.readObject());
-                }
-                
+
                 // Send Message to client if available in Stack
                 if(!messages.isEmpty()) {
+                    Message m = messages.pop();
+                    System.out.println(m.getUsername());
+                    out.writeObject(m);
+                    out.flush();
+                    out.reset();
                     
                 }
                 
-            } catch (IOException | ClassNotFoundException e ) {
+            } catch (IOException e) {
                 System.out.println(e.getMessage());
             }
             
@@ -64,11 +68,11 @@ public class Server implements Runnable {
         Server tempServer;
         ArrayList<Thread> threads = new ArrayList();
         ArrayList<Server> servers = new ArrayList();
-        ServerSocket mainServer = new ServerSocket(1244);
+        ServerSocket mainServer = new ServerSocket(1124);
 
         // Manage Messages from all Servers
-        clientMessages = new PriorityQueue();
-        MessageManager manager = new MessageManager(clientMessages, servers);
+        Server.clientMessages = new PriorityQueue();
+        MessageManager manager = new MessageManager(Server.clientMessages, servers);
         thread = new Thread(manager);
         thread.start();
         
@@ -80,7 +84,7 @@ public class Server implements Runnable {
             tempServer = new Server(sock);
             servers.add(tempServer);
             
-            // Create Thread and ass to List
+            // Create Thread and add to List
             thread = new Thread(tempServer);
             threads.add(thread);
             thread.start();

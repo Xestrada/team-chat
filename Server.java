@@ -34,11 +34,11 @@ public class Server implements Runnable {
     public void run() {
      
         // Manage this Sockets Inputs
-        Thread t = new Thread(new InputManager(Server.clientMessages, in));
+        Thread t = new Thread(new InputManager(Server.clientMessages, in, client));
         t.start();
         
         // Send Messages out to Client
-        while(true) {
+        while(!client.isClosed()) {
             
             try {
 
@@ -58,6 +58,13 @@ public class Server implements Runnable {
             
         }
         
+        try {
+            // Close Connection and Join InputManager
+            client.close();
+            t.join();
+        } catch (IOException | InterruptedException e) {
+            System.out.println(e.getMessage());
+        }   
     }
 
     public static void main(String args[]) throws Exception {

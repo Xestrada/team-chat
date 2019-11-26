@@ -45,7 +45,7 @@ public class Server implements Runnable {
                 // Send Message to client if available in Stack
                 if(!messages.isEmpty()) {
                     Message m = messages.pop();
-                    System.out.println(m.getUsername());
+                    System.out.println("Sending message from: " + m.getUsername());
                     out.writeObject(m);
                     out.flush();
                     out.reset();

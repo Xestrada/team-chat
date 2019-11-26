@@ -31,7 +31,7 @@ public class Client {
             if(temp != null) {
 
                 Message m = (Message)temp;
-                System.out.println(m.getUsername());
+                System.out.println("Received Message From: " + m.getUsername());
                 
             }
         }

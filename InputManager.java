@@ -28,8 +28,6 @@ public class InputManager implements Runnable {
             // Read in Message and add to Queue
             if(temp != null) {
                 q.add((Message)temp);
-                System.out.println(q.isEmpty());
-                
             }
             
         }

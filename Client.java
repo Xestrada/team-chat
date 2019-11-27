@@ -2,6 +2,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.Stack;
+import java.util.Scanner;
 
 public class Client {
 
@@ -16,11 +17,15 @@ public class Client {
         ObjectInputStream in;
         Message message = new Message();
         Socket s = new Socket("localhost", 1124);
+        Scanner kb = new Scanner(System.in);
 
         // Send initial login Object
         out = new ObjectOutputStream(s.getOutputStream());
         message.setLogIn(true);
-        message.setUsername("User");
+
+        System.out.print("Enter your username: ");
+        String username = kb.nextLine();
+        message.setUsername(username);
         out.writeObject(message);
         out.flush();
         out.reset();
@@ -30,13 +35,12 @@ public class Client {
         Thread t = new Thread(new ClientInputManager(s, serverMessages, in));
         t.start();
 
+        // FOLLOWING SHOULD BE MOVED TO FRONTEND
         while (!s.isClosed()) {
-
             if (!serverMessages.isEmpty()) {
 
                 Message m = (Message) serverMessages.pop();
                 System.out.println("Received Message From: " + m.getUsername());
-
             }
         }
 

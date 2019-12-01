@@ -73,7 +73,6 @@ public class Server {
         Socket sock;
         Thread thread;
         Server tempServer;
-        ArrayList<Thread> threads = new ArrayList();
         ArrayList<Server> servers = new ArrayList();
         ServerSocket mainServer = new ServerSocket(1124);
 
@@ -95,7 +94,6 @@ public class Server {
 
             // Create Thread for InputManager and add to List
             thread = new Thread(new InputManager(Server.clientMessages, tempServer));
-            threads.add(thread);
             thread.start();
 
         }

@@ -11,13 +11,30 @@ public class MessageManager implements Runnable {
         this.q = q;
         this.servers = servers;
     }
+    
+    @Override
     public  void run() {
         while(true) {
             if(!q.isEmpty()) {
+                
                 m = (Message) q.poll();
-                servers.forEach(server -> {
+                System.out.println("Sending message from: " + m.getUsername());
+                servers.forEach((Server server) -> {
+     
                     server.push(m);
+                    
+                    // Close Server if server needs to close
+                    if(server.needToClose()) {
+                        if(!server.isClosed())
+                            server.closeServer();
+                    }
                 });
+                
+                // Remove all closed Servers
+                synchronized (servers) {
+                    servers.removeIf(server -> (server.isClosed()));
+                }
+                
             }
         }
 

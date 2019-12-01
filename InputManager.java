@@ -1,18 +1,14 @@
 import java.io.IOException;
 import java.util.PriorityQueue;
-import java.io.ObjectInputStream;
-import java.net.Socket;
 
 public class InputManager implements Runnable {
     
     private volatile PriorityQueue<Message> q;
-    private final ObjectInputStream in;
-    private final Socket client;
+    private final Server client;
     
-    public InputManager(PriorityQueue<Message> q, ObjectInputStream in, Socket s) {
+    public InputManager(PriorityQueue<Message> q, Server client) {
         this.q = q;
-        this.in = in;
-        client = s;
+        this.client = client;
     }
     
     @Override
@@ -21,24 +17,25 @@ public class InputManager implements Runnable {
         Object temp;
         
         while(!client.isClosed()) {
-            
             try {
                 
-                temp = in.readObject();
+                temp = client.getInputStream().readObject();
                 // Read in Message and add to Queue
-                if(temp != null && !client.isClosed()) {
-                    q.add((Message)temp);
+                if(temp != null) {
+                    Message m = (Message)temp;
+                    // Prepare to close Socket if logging out
+                    if(m.isLoggingOut()) {
+                        client.setToClose();
+                    }
+                    q.add(m);
                 }
                 
             } catch (IOException | ClassNotFoundException e) {
                 
                 System.out.println(e.getMessage());
                 // Close Socket. Connection Reset
-                try {
-                    client.close();
-                } catch (IOException m) {
-                    System.out.println(m.getMessage());
-                }
+                client.setToClose();
+                client.closeServer();
                 
             }
             

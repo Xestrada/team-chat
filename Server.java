@@ -6,14 +6,16 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-public class Server implements Runnable {
+public class Server {
 
+    private boolean willClose;
     private final Socket client;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private static PriorityQueue<Message> clientMessages;
 
     public Server(Socket s) {
+        willClose = false;
         client = s;
         try {
             in = new ObjectInputStream(client.getInputStream());
@@ -22,34 +24,48 @@ public class Server implements Runnable {
             System.out.println(e.getMessage());
         }
     }
-
-    public void push(Message m){
-        System.out.println("Sending message from: " + m.getUsername());
+    
+    public boolean closeServer() {
         try {
-            out.writeObject(m);
-            out.flush();
-            out.reset();
+            client.close();
+            return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
+            return false;
         }
     }
+    
+    public boolean needToClose() {
+        return willClose;
+    }
+    
+    public boolean isClosed() {
+        return client.isClosed();
+    }
 
-   @Override
-    public void run() {
-        Thread t = new Thread(new InputManager(Server.clientMessages, in, client));
-        t.start();
-        while(!client.isClosed()){
-
+    public void push(Message m){
+        if(!isClosed()) {
+            try {
+                out.writeObject(m);
+                out.flush();
+                out.reset();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         }
-        try{
-            client.close();
-            t.join();
-        }
-        catch (IOException | InterruptedException e){
-            System.out.println(e.getMessage());
-        }
-
-   }
+    }
+    
+    public void setToClose() {
+        willClose = true;
+    }
+    
+    public ObjectInputStream getInputStream() {
+        return in;
+    }
+    
+    public Socket getSocket() {
+        return client;
+    }
 
     public static void main(String args[]) throws Exception {
 
@@ -72,10 +88,13 @@ public class Server implements Runnable {
             // Add new Server to List
             sock = mainServer.accept();
             tempServer = new Server(sock);
-            servers.add(tempServer);
+            
+            synchronized (servers) {
+                servers.add(tempServer);
+            }
 
-            // Create Thread and add to List
-            thread = new Thread(tempServer);
+            // Create Thread for InputManager and add to List
+            thread = new Thread(new InputManager(Server.clientMessages, tempServer));
             threads.add(thread);
             thread.start();
 

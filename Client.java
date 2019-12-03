@@ -1,11 +1,12 @@
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Stack;
 import java.util.Scanner;
 
-public class Client {
+public class Client implements Runnable {
     private volatile Stack<Message> serverMessages;
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -20,9 +21,9 @@ public class Client {
         this.serverMessages = serverMessages;
     }
 
-    public boolean connect(String username) {
+    public boolean connect(String address, String username) {
         try {
-            s = new Socket("localhost", 1124);
+            s = new Socket(address, 1124);
             this.username = username;
             init();
             return true;
@@ -58,8 +59,6 @@ public class Client {
             out = new ObjectOutputStream(s.getOutputStream());
             // Setup Input
             in = new ObjectInputStream(s.getInputStream());
-            t = new Thread(new ClientInputManager(s, serverMessages, in));
-            t.start();
             // send login message to server
             sendLoginMessage();
         } catch (IOException e) {
@@ -114,16 +113,48 @@ public class Client {
         }
     }
 
+    @Override
+    public void run() {
+        // Stack<Message> serverMessages = new Stack();
+        // Client client = new Client(serverMessages);
+
+        try {
+            Object temp = null;
+
+            while (!s.isClosed()) {
+
+                try {
+                    temp = in.readObject();
+                    // Read in Message and add to Queue
+                    if (temp != null) {
+                        serverMessages.push((Message) temp);
+                    }
+                } catch (IOException | ClassNotFoundException e) {
+                    System.out.println(e.getMessage());
+                    try {
+                        s.close();
+                    } catch (IOException exception) {
+                        System.out.println(exception.getMessage());
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public static void main(String[] args) {
         Stack<Message> serverMessages = new Stack();
         Client client = new Client(serverMessages);
-
         Scanner kb = new Scanner(System.in);
 
+        Thread thread = new Thread(client);
         try {
             System.out.print("Enter username: ");
             String username = kb.nextLine();
-            client.connect(username);
+            client.connect("localhost", username);
+            thread.start();
             System.out.print("> ");
             String m = kb.nextLine();
             client.sendMessage(m);

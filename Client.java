@@ -10,7 +10,6 @@ public class Client implements Runnable {
     private ObjectOutputStream out;
     private ObjectInputStream in;
     private Socket s;
-    private Thread t;
     private String username;
 
     public Client() {
@@ -136,7 +135,6 @@ public class Client implements Runnable {
                         System.out.println(exception.getMessage());
                     }
                 }
-
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

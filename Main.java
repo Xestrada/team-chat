@@ -1,3 +1,5 @@
+package sample;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,9 +10,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        System.out.println(com.sun.javafx.runtime.VersionInfo.getRuntimeVersion());
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+        root.setId("pane");
         primaryStage.setTitle("Chat Client");
-        primaryStage.setScene(new Scene(root, 400, 400));
+
+        Scene scene = new Scene(root, 400, 400);
+        scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
+
+        primaryStage.setScene(scene);
         primaryStage.show();
 
     }

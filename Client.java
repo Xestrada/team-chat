@@ -1,3 +1,5 @@
+package sample;
+
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -141,31 +143,5 @@ public class Client implements Runnable {
         }
     }
 
-    public static void main(String[] args) {
-        Stack<Message> serverMessages = new Stack();
-        Client client = new Client(serverMessages);
-        Scanner kb = new Scanner(System.in);
 
-        Thread thread = new Thread(client);
-        try {
-            System.out.print("Enter username: ");
-            String username = kb.nextLine();
-            client.connect("localhost", username);
-            thread.start();
-            System.out.print("> ");
-            String m = kb.nextLine();
-            client.sendMessage(m);
-            client.sendLogoutMessage();
-            // // FOLLOWING SHOULD BE MOVED TO FRONTEND
-            // while (!s.isClosed()) {
-            // if (!serverMessages.isEmpty()) {
-
-            // Message m = (Message) serverMessages.pop();
-            // System.out.println("Received Message From: " + m.getUsername());
-            // }
-            // }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
 }

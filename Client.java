@@ -1,4 +1,3 @@
-package sample;
 
 import java.io.ObjectOutputStream;
 import java.io.IOException;
@@ -28,7 +27,7 @@ public class Client implements Runnable {
             init();
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
@@ -38,7 +37,7 @@ public class Client implements Runnable {
             sendLogoutMessage();
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
@@ -48,7 +47,7 @@ public class Client implements Runnable {
             s.close();
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
@@ -62,7 +61,7 @@ public class Client implements Runnable {
             // send login message to server
             sendLoginMessage();
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -81,7 +80,7 @@ public class Client implements Runnable {
             out.flush();
             out.reset();
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -95,7 +94,7 @@ public class Client implements Runnable {
             out.flush();
             out.reset();
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -115,9 +114,6 @@ public class Client implements Runnable {
 
     @Override
     public void run() {
-        // Stack<Message> serverMessages = new Stack();
-        // Client client = new Client(serverMessages);
-
         try {
             Object temp = null;
 
@@ -130,18 +126,16 @@ public class Client implements Runnable {
                         serverMessages.push((Message) temp);
                     }
                 } catch (IOException | ClassNotFoundException e) {
-                    System.out.println(e.getMessage());
+                    e.printStackTrace();
                     try {
                         s.close();
                     } catch (IOException exception) {
-                        System.out.println(exception.getMessage());
+                        exception.printStackTrace();
                     }
                 }
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
-
-
 }

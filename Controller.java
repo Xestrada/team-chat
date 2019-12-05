@@ -1,5 +1,3 @@
-package sample;
-
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
@@ -16,46 +14,47 @@ import java.util.TimerTask;
 
 public class Controller {
 
-    public TextField addrField;     //where server address should be
-    public TextField inputField;    //where user message is entered
-    public TextArea chatField;      //where chat messages are stored
-    public TextField nameField;     //stores users name
+    public TextField addrField; // where server address should be
+    public TextField inputField; // where user message is entered
+    public TextArea chatField; // where chat messages are stored
+    public TextField nameField; // stores users name
 
-    public Button conButton;        //connection button
-    public Button disconButton;     //disconnection button
+    public Button conButton; // connection button
+    public Button disconButton; // disconnection button
 
     public Boolean connected;
 
-                                    //client stuff
+    // client stuff
     public Stack<Message> serverMessages;
     public Client client;
     public Thread thread;
 
-                                    //Timer stuff for clearing inbox
+    // Timer stuff for clearing inbox
     Timer timer;
-    TimerTask task = new TimerTask(){
-        public void run(){
-            while(!serverMessages.isEmpty()){
+    TimerTask task = new TimerTask() {
+        public void run() {
+            while (!serverMessages.isEmpty()) {
                 Message msg = serverMessages.pop();
-                displayMessage(msg.getUsername(), msg.getMessage());
+                if (!(msg.isLoggingIn() || msg.isLoggingOut())) {
+                    displayMessage(msg.getUsername(), msg.getMessage());
+                } else if (msg.isLoggingIn()) {
+                    displayMessage("SERVER", msg.getUsername() + " connected");
+                } else {
+                    displayMessage("SERVER", msg.getUsername() + " disconnected");
+                }
             }
         }
     };
 
-
-
-
-    public Controller(){
+    public Controller() {
         serverMessages = new Stack();
         client = new Client(serverMessages);
         thread = new Thread(client);
     }
 
     @FXML
-    public void initialize(){
-        BooleanBinding booleanBind = addrField.textProperty().isEmpty()
-                                        .or(nameField.textProperty().isEmpty());
-
+    public void initialize() {
+        BooleanBinding booleanBind = addrField.textProperty().isEmpty().or(nameField.textProperty().isEmpty());
 
         conButton.disableProperty().bind(booleanBind);
         timer = new Timer();
@@ -66,47 +65,35 @@ public class Controller {
         nameField.setText("tim");
     }
 
-    /*  send message typed in field
-        2 functionality:
-            add message to chatField
-            send message to server
-    */
+    /*
+     * send message typed in field 2 functionality: add message to chatField send
+     * message to server
+     */
     public void sendMessage(ActionEvent actionEvent) {
-        
-        //msg added to chatField
-        displayMessage("me", inputField.getText());
-        inputField.setText("");
-        
-        //Send to server
+        // Send to server
         client.sendMessage(inputField.getText());
+        inputField.setText("");
     }
 
-    //called when "connect" button clicked
+    // called when "connect" button clicked
     public void connect(ActionEvent actionEvent) {
-            if(client.connect(addrField.getText(), nameField.getText())){
-                thread.start();
-                timer.scheduleAtFixedRate(task, 2000, 1000);
-                displayMessage("SERVER", "Connected");
-            }
-
-
-
-    }
-
-    //called when "disconnect" button clicked
-    public void disconnect(ActionEvent actionEvent) {
-        if(client.disconnect()){
-            displayMessage("SERVER", "Disconnected");
+        if (client.connect(addrField.getText(), nameField.getText())) {
+            thread.start();
+            timer.scheduleAtFixedRate(task, 2000, 1000);
+            // displayMessage("SERVER", "Connected");
         }
     }
 
-    //helper function for formatting message if needed
-    private void displayMessage(String name, String msg){
+    // called when "disconnect" button clicked
+    public void disconnect(ActionEvent actionEvent) {
+        if (client.disconnect()) {
+            // displayMessage("SERVER", "Disconnected");
+        }
+    }
+
+    // helper function for formatting message if needed
+    private void displayMessage(String name, String msg) {
         chatField.appendText(name + ": " + msg + "\n");
     }
 
-
-
 }
-
-

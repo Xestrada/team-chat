@@ -1,7 +1,5 @@
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -21,8 +19,7 @@ public class Controller {
 
     public Button conButton; // connection button
     public Button disconButton; // disconnection button
-
-    public Boolean connected;
+    public Button sendButton;
 
     // client stuff
     public Stack<Message> serverMessages;
@@ -54,15 +51,14 @@ public class Controller {
 
     @FXML
     public void initialize() {
-        BooleanBinding booleanBind = addrField.textProperty().isEmpty().or(nameField.textProperty().isEmpty());
-
-        conButton.disableProperty().bind(booleanBind);
         timer = new Timer();
 
-        connected = false;
-
         addrField.setText("localhost");
-        nameField.setText("tim");
+        nameField.setText("username");
+        disconButton.setDisable(true);
+        chatField.setDisable(true);
+        inputField.setDisable(true);
+        sendButton.setDisable(true);
     }
 
     /*
@@ -77,9 +73,17 @@ public class Controller {
 
     // called when "connect" button clicked
     public void connect(ActionEvent actionEvent) {
-        if (client.connect(addrField.getText(), nameField.getText())) {
+        if (!nameField.getText().isEmpty() && !addrField.getText().isEmpty() &&
+                client.connect(addrField.getText(), nameField.getText())) {
             thread.start();
             timer.scheduleAtFixedRate(task, 2000, 1000);
+            conButton.setDisable(true);
+            addrField.setDisable(true);
+            nameField.setDisable(true);
+            chatField.setDisable(false);
+            inputField.setDisable(false);
+            disconButton.setDisable(false);
+            sendButton.setDisable(false);
             // displayMessage("SERVER", "Connected");
         }
     }
@@ -88,6 +92,7 @@ public class Controller {
     public void disconnect(ActionEvent actionEvent) {
         if (client.disconnect()) {
             // displayMessage("SERVER", "Disconnected");
+            System.exit(0);
         }
     }
 

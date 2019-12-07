@@ -1,10 +1,8 @@
-
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.Stack;
-import java.util.Scanner;
 
 public class Client implements Runnable {
     private volatile Stack<Message> serverMessages;
@@ -26,7 +24,7 @@ public class Client implements Runnable {
             this.username = username;
             init();
             return true;
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return false;
@@ -46,7 +44,7 @@ public class Client implements Runnable {
         try {
             s.close();
             return true;
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return false;
@@ -115,7 +113,7 @@ public class Client implements Runnable {
     @Override
     public void run() {
         try {
-            Object temp = null;
+            Object temp;
 
             while (!s.isClosed()) {
 

@@ -67,8 +67,10 @@ public class Controller {
      */
     public void sendMessage(ActionEvent actionEvent) {
         // Send to server
-        client.sendMessage(inputField.getText());
-        inputField.setText("");
+        if(!inputField.getText().isEmpty()) {
+            client.sendMessage(inputField.getText());
+            inputField.setText("");
+        }
     }
 
     // called when "connect" button clicked
